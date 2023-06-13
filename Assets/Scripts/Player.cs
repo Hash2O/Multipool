@@ -1,6 +1,7 @@
 using Fusion;
 using UnityEngine;
 
+
 public class Player : NetworkBehaviour
 {
     [SerializeField] private Ball _prefabBall;
@@ -8,8 +9,23 @@ public class Player : NetworkBehaviour
 
     [Networked] private TickTimer delay { get; set; }
 
+    [Networked(OnChanged = nameof(OnBallSpawned))]
+    public NetworkBool spawned { get; set; }
+
     private NetworkCharacterControllerPrototype _cc;
     private Vector3 _forward;
+
+    private Material _material;
+
+    Material material
+    {
+        get
+        {
+            if (_material == null)
+                _material = GetComponentInChildren<MeshRenderer>().material;
+            return _material;
+        }
+    }
 
     private void Awake()
     {
@@ -40,6 +56,7 @@ public class Player : NetworkBehaviour
                         // Initialize the Ball before synchronizing it
                         o.GetComponent<Ball>().Init();
                     });
+                    spawned = !spawned;
                 }
                 else if ((data.buttons & NetworkInputData.MOUSEBUTTON2) != 0)
                 {
@@ -51,11 +68,28 @@ public class Player : NetworkBehaviour
                       Object.InputAuthority,
                       (runner, o) =>
                       {
-                          o.GetComponent<PhysxBall>().Init(10 * _forward);
+                          o.GetComponent<PhysxBall>().Init(Random.Range(0, 20) * _forward);
                       });
+                    spawned = !spawned;
                 }
             }
         }
     }
+
+    public static void OnBallSpawned(Changed<Player> changed)
+    {
+        changed.Behaviour.material.color = Color.blue;
+
+        //var newValue = changed.Behaviour.material.color = Color.red; 
+        //changed.LoadOld();
+        //var oldValue = changed.Behaviour.material.color = Color.green;
+    }
+
+    public override void Render()
+    {
+        material.color = Color.Lerp(material.color, Color.white, Time.deltaTime);
+    }
+
+
 }
 
