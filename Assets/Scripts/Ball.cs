@@ -14,6 +14,6 @@ public class Ball : NetworkBehaviour
         if (life.Expired(Runner))
             Runner.Despawn(Object);
         else
-            transform.position += 5 * transform.forward * Runner.DeltaTime;
+            transform.position += 50 * transform.forward * Runner.DeltaTime;
     }
 }
